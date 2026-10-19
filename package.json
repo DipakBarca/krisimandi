@@ -1,0 +1,12 @@
+{
+  "name": "krisimandi",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Marketplace connecting farmers in Nepal with buyers: listings, direct offers and timed bidding.",
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "db:up": "docker compose up -d",
+    "db:migrate": "npm run migrate -w @krisimandi/db",
+    "db:seed": "npm run seed -w @krisimandi/db"
+  }
+}
