@@ -7,7 +7,7 @@ Marketplace that connects farmers in Nepal with buyers. Farmers post a harvest a
 ```
 packages/db     Prisma schema, migrations, seed data (PostgreSQL + PostGIS)
 apps/api        NestJS API: sign-in, profiles, listings
-apps/web        Next.js PWA (phase 1)
+apps/web        Next.js PWA in Nepali and English
 ```
 
 ## Run locally
@@ -23,6 +23,13 @@ npm run db:seed      # Sarlahi local units and wards, units, crops
 cp .env.example apps/api/.env
 npm run build -w @krisimandi/api && npm start -w @krisimandi/api   # http://localhost:4000
 npm test -w @krisimandi/api   # needs the migrated, seeded database
+```
+
+Web app (second terminal):
+
+```bash
+cp apps/web/.env.example apps/web/.env.local
+npm run dev -w @krisimandi/web   # http://localhost:3000
 ```
 
 With `SMS_PROVIDER=console` the sign-in code is printed in the API log instead of being sent.
