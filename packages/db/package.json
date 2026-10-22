@@ -9,7 +9,8 @@
     "migrate": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
     "seed": "prisma db seed",
-    "studio": "prisma studio"
+    "studio": "prisma studio",
+    "make-admin": "tsx prisma/make-admin.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

@@ -34,7 +34,16 @@ npm run dev -w @krisimandi/web   # http://localhost:3000
 
 With `SMS_PROVIDER=console` the sign-in code is printed in the API log instead of being sent.
 
-## API (phases 1 to 3)
+To make someone an admin, they sign up in the app first, then:
+
+```bash
+npm run db:make-admin -- 98XXXXXXXX            # add the admin role
+npm run db:make-admin -- 98XXXXXXXX --remove   # take it away
+```
+
+Admins see an Admin link in the header for verification, complaints, users, the crop list and the audit log.
+
+## API (phases 1 to 4)
 
 | Method | Path | Who | What |
 | --- | --- | --- | --- |
@@ -66,6 +75,22 @@ With `SMS_PROVIDER=console` the sign-in code is printed in the API log instead o
 | POST | /listings/:id/bids | buyer | Bid; a bid in the last 5 minutes adds 5 minutes |
 | POST | /listings/:id/auction/confirm, pass | farmer | Confirm the winner (creates the order) or pass to the next bidder |
 | GET | /me/orders, /orders/:id | signed in | Agreed deals, with both phone numbers |
+| PATCH | /orders/:id | either side | Set the pickup time (`pickupAt`) and place before pickup |
+| POST | /orders/:id/ready | farmer | Ready for pickup, optionally with pickup details |
+| POST | /orders/:id/picked-up | either side | The buyer has collected the produce |
+| POST | /orders/:id/paid | buyer | "I have paid", with `method` CASH or BANK_TRANSFER |
+| POST | /orders/:id/payment-received | farmer | Confirms the money arrived; the order completes once it is also picked up |
+| POST | /orders/:id/cancel | either side | Cancel before pickup with a `reason`; fixed-price stock goes back on sale |
+| POST | /orders/:id/review | either side | 1 to 5 stars and a comment, once per side, after completion |
+| GET | /users/:id/reviews | anyone | Reviews someone has received |
+| POST | /complaints | signed in | Report a user, listing or order (`targetType`, `targetId`, `reason`) |
+| GET | /me/complaints | signed in | My reports and the admin's note |
+| GET, PATCH | /admin/complaints | admin | Follow up: status OPEN, FOLLOWING_UP or CLOSED, and a note the filer sees |
+| GET | /admin/stats, /admin/users?q= | admin | Counts, and user search by name or phone |
+| POST | /admin/users/:id/suspend, unsuspend | admin | Suspending signs them out and pauses their listings on sale |
+| POST | /admin/listings/:id/remove | admin | Take a listing down with a `reason` the farmer sees |
+| POST, PATCH | /admin/crops | admin | Add or edit crops in the catalogue |
+| GET | /admin/audit | admin | Audit log of bids, accepted deals, order changes and admin actions (`entity`, `entityId`, `before`) |
 | POST | /listings/:id/conversation | signed in | Start or reopen the chat with the farmer |
 | GET | /me/conversations, /me/conversations/unread | signed in | Chats with last message and unread counts |
 | GET, POST | /conversations/:id/messages, /conversations/:id/photos | either side | Read (marks read; `after` for polling) and send messages or photos |

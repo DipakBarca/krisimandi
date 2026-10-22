@@ -79,6 +79,10 @@ export type AppNotification = {
     price?: string | null;
     village?: string | null;
     orderId?: string;
+    complaintId?: string;
+    reason?: string;
+    rating?: number;
+    status?: 'OPEN' | 'FOLLOWING_UP' | 'CLOSED';
   };
 };
 
@@ -153,9 +157,98 @@ export type Order = {
   pricePerUnit: string;
   quantity: string;
   pickupAt: string | null;
-  status: 'CONFIRMED' | 'READY_FOR_PICKUP' | 'PICKED_UP' | 'COMPLETED' | 'CANCELLED';
+  pickupPlace: string | null;
+  status: OrderStatus;
+  paymentMethod: PaymentMethod | null;
+  paidStatus: 'UNPAID' | 'PAID';
+  buyerPaidAt: string | null;
+  farmerPaidAt: string | null;
+  cancelReason: string | null;
+  cancelledById: string | null;
+  completedAt: string | null;
   createdAt: string;
   listing: Listing;
   buyer: Person & { village: string | null };
   farmer: Person & { village: string | null };
+  reviews: { id: string; reviewerId: string; rating: number; comment: string | null; createdAt: string }[];
+};
+export type OrderStatus = 'CONFIRMED' | 'READY_FOR_PICKUP' | 'PICKED_UP' | 'COMPLETED' | 'CANCELLED';
+export type PaymentMethod = 'CASH' | 'BANK_TRANSFER';
+
+export type PublicProfile = {
+  id: string;
+  fullName: string;
+  photoUrl: string | null;
+  roles: Role[];
+  isVerified: boolean;
+  village: string | null;
+  ward: Ward | null;
+  memberSince: string;
+  rating: { average: number | null; count: number };
+  activeListings: number;
+};
+export type Review = {
+  id: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  reviewer: { id: string; fullName: string };
+  order: { buyerId: string; listing: { crop: Names } };
+};
+
+export type ComplaintTarget = 'USER' | 'LISTING' | 'ORDER';
+export type ComplaintStatus = 'OPEN' | 'FOLLOWING_UP' | 'CLOSED';
+type Who = { id: string; fullName: string };
+type Names = { nameEn: string; nameNe: string };
+export type Complaint = {
+  id: string;
+  targetType: ComplaintTarget;
+  targetId: string;
+  reason: string;
+  status: ComplaintStatus;
+  adminNotes: string | null;
+  createdAt: string;
+  closedAt: string | null;
+  /** Who or what the complaint is about; null if it no longer exists. */
+  target: { id: string; fullName?: string; crop?: Names; farmer?: Who; buyer?: Who; listing?: { crop: Names } } | null;
+  filedBy?: Who & { phone: string };
+  handledBy?: Who | null;
+};
+
+export type AdminStats = {
+  farmers: number;
+  buyers: number;
+  suspended: number;
+  activeListings: number;
+  orders: Partial<Record<OrderStatus, number>>;
+  openComplaints: number;
+  pendingDocs: number;
+};
+export type AdminUser = {
+  id: string;
+  phone: string;
+  fullName: string;
+  roles: Role[];
+  village: string | null;
+  isVerified: boolean;
+  isSuspended: boolean;
+  createdAt: string;
+  _count: { listings: number; buyerOrders: number; farmerOrders: number };
+};
+export type AdminDoc = {
+  id: string;
+  docType: 'CITIZENSHIP' | 'PAN' | 'OTHER';
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  createdAt: string;
+  user: { id: string; fullName: string; phone: string; village: string | null };
+};
+export type AuditEntry = {
+  id: number;
+  action: string;
+  entity: string;
+  entityId: string;
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
+  createdAt: string;
+  actor: Who | null;
 };

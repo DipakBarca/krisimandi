@@ -1,8 +1,8 @@
-import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { CurrentUser, Public, Roles } from '../auth/guards';
 import { AuctionsService } from './auctions.service';
-import { BidDto, CounterOfferDto, CreateOfferDto, OffersQuery } from './dto';
+import { BidDto, CancelOrderDto, CounterOfferDto, CreateOfferDto, OffersQuery, PaymentDto, PickupDto, ReviewDto } from './dto';
 import { OffersService } from './offers.service';
 import { OrdersService } from './orders.service';
 
@@ -91,5 +91,51 @@ export class DealsController {
   @Get('orders/:id')
   order(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
     return this.orders.get(user, id);
+  }
+
+  @Patch('orders/:id')
+  setPickup(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string, @Body() dto: PickupDto) {
+    return this.orders.setPickup(user, id, dto);
+  }
+
+  @Post('orders/:id/ready')
+  @HttpCode(200)
+  ready(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string, @Body() dto: PickupDto) {
+    return this.orders.ready(user, id, dto);
+  }
+
+  @Post('orders/:id/picked-up')
+  @HttpCode(200)
+  pickedUp(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
+    return this.orders.pickedUp(user, id);
+  }
+
+  @Post('orders/:id/paid')
+  @HttpCode(200)
+  paid(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string, @Body() dto: PaymentDto) {
+    return this.orders.markPaid(user, id, dto.method);
+  }
+
+  @Post('orders/:id/payment-received')
+  @HttpCode(200)
+  paymentReceived(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string, @Body() dto: PaymentDto) {
+    return this.orders.confirmPayment(user, id, dto.method);
+  }
+
+  @Post('orders/:id/cancel')
+  @HttpCode(200)
+  cancel(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string, @Body() dto: CancelOrderDto) {
+    return this.orders.cancel(user, id, dto);
+  }
+
+  @Post('orders/:id/review')
+  review(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string, @Body() dto: ReviewDto) {
+    return this.orders.review(user, id, dto);
+  }
+
+  @Public()
+  @Get('users/:id/reviews')
+  reviews(@Param('id', ParseUUIDPipe) id: string) {
+    return this.orders.reviewsOf(id);
   }
 }

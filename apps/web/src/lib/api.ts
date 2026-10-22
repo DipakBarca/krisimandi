@@ -89,3 +89,16 @@ export async function api<T = unknown>(
 }
 
 export const photoUrl = (url: string) => (url.startsWith('http') ? url : `${API_URL}${url}`);
+
+/** Downloads a protected file (such as a verification document) with the stored token. */
+export async function apiBlob(path: string, retry = true): Promise<Blob> {
+  const tokens = tokenStore.get();
+  const res = await fetch(`${API_URL}${path}`, {
+    headers: tokens ? { authorization: `Bearer ${tokens.accessToken}` } : {},
+  }).catch(() => {
+    throw new ApiError(0, 'network');
+  });
+  if (res.status === 401 && tokens && retry && (await refreshTokens())) return apiBlob(path, false);
+  if (!res.ok) throw new ApiError(res.status);
+  return res.blob();
+}

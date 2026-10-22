@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Offer, Prisma, User } from '@prisma/client';
 import { NotificationsService } from '../alerts/notifications.service';
+import { AuditService } from '../common/audit.service';
 import { badRequest, forbidden, notFound } from '../common/errors';
 import { PrismaService } from '../prisma.service';
 import { HOUR, toDate, today } from './dates';
@@ -21,6 +22,7 @@ export class OffersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
+    private readonly audit: AuditService,
   ) {}
 
   async create(buyer: User, listingId: string, dto: CreateOfferDto) {
@@ -93,6 +95,7 @@ export class OffersService {
         },
       });
       await tx.offer.update({ where: { id: offer.id }, data: { status: 'ACCEPTED' } });
+      await this.audit.log(user.id, 'OFFER_ACCEPTED', 'order', order.id, { after: { offerId: offer.id, listingId: listing.id } }, tx);
       const soldOut = left.isZero();
       await tx.listing.update({
         where: { id: listing.id },

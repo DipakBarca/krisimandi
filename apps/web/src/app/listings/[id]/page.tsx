@@ -6,6 +6,7 @@ import { ChangeEvent, useState } from 'react';
 import { ErrorText } from '@/components/Field';
 import { AuctionPanel } from '@/components/AuctionPanel';
 import { OfferPanel } from '@/components/OfferPanel';
+import { ReportButton } from '@/components/ReportButton';
 import { SaveButton } from '@/components/SaveButton';
 import { api, ApiError, photoUrl } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -136,7 +137,7 @@ export default function ListingPage() {
       {listing.description && <p>{listing.description}</p>}
 
       <p className="muted">
-        {listing.farmer.fullName}
+        <Link href={`/users/${listing.farmerId}`}>{listing.farmer.fullName}</Link>
         {listing.farmer.isVerified && <span className="badge">✓ {t('listing.verified')}</span>}
       </p>
 
@@ -203,8 +204,38 @@ export default function ListingPage() {
             <SaveButton listingId={listing.id} saved={!!listing.saved} withLabel />
           </div>
           <ErrorText message={actionError} />
+          {me && <ReportButton targetType="LISTING" targetId={listing.id} />}
+          {me?.roles.includes('ADMIN') && (
+            <AdminRemove onRemove={(reason) => run(async () => {
+              await api(`/admin/listings/${listing.id}/remove`, { body: { reason } });
+              router.replace('/admin');
+            })} busy={busy} />
+          )}
         </>
       )}
     </article>
+  );
+}
+
+/** Admins take down a listing that breaks the rules; the farmer is told the reason. */
+function AdminRemove({ onRemove, busy }: { onRemove: (reason: string) => void; busy: boolean }) {
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState('');
+  if (!open) {
+    return (
+      <button className="link small" onClick={() => setOpen(true)}>
+        {t('admin.removeListing')}
+      </button>
+    );
+  }
+  return (
+    <form className="stack notice" onSubmit={(e) => { e.preventDefault(); onRemove(reason.trim()); }}>
+      <label className="field">
+        <span className="field-label">{t('admin.removeReason')}</span>
+        <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} minLength={3} maxLength={500} required />
+      </label>
+      <button className="danger" disabled={busy || reason.trim().length < 3}>{t('admin.removeListing')}</button>
+    </form>
   );
 }

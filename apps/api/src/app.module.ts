@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AdminController } from './admin/admin.controller';
+import { AdminService } from './admin/admin.service';
 import { AlertsController } from './alerts/alerts.controller';
 import { AlertsService } from './alerts/alerts.service';
 import { NotificationsService } from './alerts/notifications.service';
@@ -10,6 +12,9 @@ import { AuthService } from './auth/auth.service';
 import { AuthGuard } from './auth/guards';
 import { OtpService } from './auth/otp.service';
 import { smsProviderFactory } from './auth/sms.provider';
+import { AuditService } from './common/audit.service';
+import { ComplaintsController } from './complaints/complaints.controller';
+import { ComplaintsService } from './complaints/complaints.service';
 import { ChatController } from './chat/chat.controller';
 import { ChatService } from './chat/chat.service';
 import { AuctionsService } from './deals/auctions.service';
@@ -38,9 +43,12 @@ import { VerificationController } from './verification/verification.controller';
     AlertsController,
     DealsController,
     ChatController,
+    ComplaintsController,
+    AdminController,
   ],
   providers: [
     PrismaService,
+    AuditService,
     StorageService,
     smsProviderFactory,
     OtpService,
@@ -55,6 +63,8 @@ import { VerificationController } from './verification/verification.controller';
     DealsJob,
     ChatService,
     ListingExpiryJob,
+    ComplaintsService,
+    AdminService,
     { provide: APP_GUARD, useClass: AuthGuard },
   ],
 })
