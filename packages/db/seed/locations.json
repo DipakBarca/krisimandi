@@ -1,0 +1,185 @@
+{
+  "_note": "Pilot: Nawalpur village, Lalbandi Municipality ward 1, Sarlahi district, Madhesh Province. Local unit names from citypopulation.de (2021 census); ward counts for Balara (11) and Lalbandi (17) from edusanjal.com. null means not yet confirmed, so no wards are seeded for that unit.",
+  "provinces": [
+    {
+      "id": 2,
+      "nameEn": "Madhesh",
+      "nameNe": "मधेश"
+    }
+  ],
+  "districts": [
+    {
+      "id": 219,
+      "provinceId": 2,
+      "nameEn": "Sarlahi",
+      "nameNe": "सर्लाही"
+    }
+  ],
+  "municipalities": [
+    {
+      "id": 21901,
+      "districtId": 219,
+      "nameEn": "Bagmati",
+      "nameNe": "बागमती",
+      "type": "municipality",
+      "wards": null
+    },
+    {
+      "id": 21902,
+      "districtId": 219,
+      "nameEn": "Balara",
+      "nameNe": "बलरा",
+      "type": "municipality",
+      "wards": 11
+    },
+    {
+      "id": 21903,
+      "districtId": 219,
+      "nameEn": "Barahathwa",
+      "nameNe": "बरहथवा",
+      "type": "municipality",
+      "wards": null
+    },
+    {
+      "id": 21904,
+      "districtId": 219,
+      "nameEn": "Godaita",
+      "nameNe": "गोडैटा",
+      "type": "municipality",
+      "wards": null
+    },
+    {
+      "id": 21905,
+      "districtId": 219,
+      "nameEn": "Haripur",
+      "nameNe": "हरिपुर",
+      "type": "municipality",
+      "wards": null
+    },
+    {
+      "id": 21906,
+      "districtId": 219,
+      "nameEn": "Haripurwa",
+      "nameNe": "हरिपुर्वा",
+      "type": "municipality",
+      "wards": null
+    },
+    {
+      "id": 21907,
+      "districtId": 219,
+      "nameEn": "Hariwan",
+      "nameNe": "हरिवन",
+      "type": "municipality",
+      "wards": null
+    },
+    {
+      "id": 21908,
+      "districtId": 219,
+      "nameEn": "Ishworpur",
+      "nameNe": "ईश्वरपुर",
+      "type": "municipality",
+      "wards": null
+    },
+    {
+      "id": 21909,
+      "districtId": 219,
+      "nameEn": "Kabilasi",
+      "nameNe": "कविलासी",
+      "type": "municipality",
+      "wards": null
+    },
+    {
+      "id": 21910,
+      "districtId": 219,
+      "nameEn": "Lalbandi",
+      "nameNe": "लालबन्दी",
+      "type": "municipality",
+      "wards": 17
+    },
+    {
+      "id": 21911,
+      "districtId": 219,
+      "nameEn": "Malangwa",
+      "nameNe": "मलङ्वा",
+      "type": "municipality",
+      "wards": null
+    },
+    {
+      "id": 21912,
+      "districtId": 219,
+      "nameEn": "Basbariya",
+      "nameNe": "बसबरीया",
+      "type": "rural municipality",
+      "wards": null
+    },
+    {
+      "id": 21913,
+      "districtId": 219,
+      "nameEn": "Bishnu",
+      "nameNe": "विष्णु",
+      "type": "rural municipality",
+      "wards": null
+    },
+    {
+      "id": 21914,
+      "districtId": 219,
+      "nameEn": "Brahmapuri",
+      "nameNe": "ब्रह्मपुरी",
+      "type": "rural municipality",
+      "wards": null
+    },
+    {
+      "id": 21915,
+      "districtId": 219,
+      "nameEn": "Chakraghatta",
+      "nameNe": "चक्रघट्टा",
+      "type": "rural municipality",
+      "wards": null
+    },
+    {
+      "id": 21916,
+      "districtId": 219,
+      "nameEn": "Chandranagar",
+      "nameNe": "चन्द्रनगर",
+      "type": "rural municipality",
+      "wards": null
+    },
+    {
+      "id": 21917,
+      "districtId": 219,
+      "nameEn": "Dhankaul",
+      "nameNe": "धनकौल",
+      "type": "rural municipality",
+      "wards": null
+    },
+    {
+      "id": 21918,
+      "districtId": 219,
+      "nameEn": "Kaudena",
+      "nameNe": "कौडेना",
+      "type": "rural municipality",
+      "wards": null
+    },
+    {
+      "id": 21919,
+      "districtId": 219,
+      "nameEn": "Parsa",
+      "nameNe": "पर्सा",
+      "type": "rural municipality",
+      "wards": null
+    },
+    {
+      "id": 21920,
+      "districtId": 219,
+      "nameEn": "Ramnagar",
+      "nameNe": "रामनगर",
+      "type": "rural municipality",
+      "wards": null
+    }
+  ],
+  "pilot": {
+    "village": "Nawalpur",
+    "municipalityId": 21910,
+    "wardNo": 1
+  }
+}

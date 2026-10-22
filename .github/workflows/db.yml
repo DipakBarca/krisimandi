@@ -1,0 +1,39 @@
+name: Database
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  migrate-and-seed:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: krisimandi
+          POSTGRES_PASSWORD: krisimandi
+          POSTGRES_DB: krisimandi
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U krisimandi"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://krisimandi:krisimandi@localhost:5432/krisimandi
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx prisma validate
+        working-directory: packages/db
+      - run: npx prisma migrate deploy
+        working-directory: packages/db
+      - run: npx prisma db seed
+        working-directory: packages/db

@@ -1,0 +1,31 @@
+{
+  "units": [
+    { "code": "kg", "nameEn": "Kilogram", "nameNe": "किलो", "kgEquivalent": 1 },
+    { "code": "quintal", "nameEn": "Quintal", "nameNe": "क्विन्टल", "kgEquivalent": 100 },
+    { "code": "muri", "nameEn": "Muri", "nameNe": "मुरी", "kgEquivalent": null },
+    { "code": "crate", "nameEn": "Crate", "nameNe": "क्रेट", "kgEquivalent": null },
+    { "code": "piece", "nameEn": "Piece", "nameNe": "गोटा", "kgEquivalent": null },
+    { "code": "dozen", "nameEn": "Dozen", "nameNe": "दर्जन", "kgEquivalent": null },
+    { "code": "litre", "nameEn": "Litre", "nameNe": "लिटर", "kgEquivalent": null }
+  ],
+  "crops": [
+    { "nameEn": "Rice (paddy)", "nameNe": "धान", "category": "grain", "unit": "quintal" },
+    { "nameEn": "Wheat", "nameNe": "गहुँ", "category": "grain", "unit": "quintal" },
+    { "nameEn": "Maize", "nameNe": "मकै", "category": "grain", "unit": "quintal" },
+    { "nameEn": "Lentil", "nameNe": "मसुरो", "category": "pulse", "unit": "kg" },
+    { "nameEn": "Mustard", "nameNe": "तोरी", "category": "oilseed", "unit": "kg" },
+    { "nameEn": "Potato", "nameNe": "आलु", "category": "vegetable", "unit": "kg" },
+    { "nameEn": "Onion", "nameNe": "प्याज", "category": "vegetable", "unit": "kg" },
+    { "nameEn": "Tomato", "nameNe": "गोलभेडा", "category": "vegetable", "unit": "crate" },
+    { "nameEn": "Cauliflower", "nameNe": "काउली", "category": "vegetable", "unit": "kg" },
+    { "nameEn": "Cabbage", "nameNe": "बन्दा", "category": "vegetable", "unit": "kg" },
+    { "nameEn": "Cucumber", "nameNe": "काँक्रो", "category": "vegetable", "unit": "kg" },
+    { "nameEn": "Bitter gourd", "nameNe": "करेला", "category": "vegetable", "unit": "kg" },
+    { "nameEn": "Chilli", "nameNe": "खुर्सानी", "category": "spice", "unit": "kg" },
+    { "nameEn": "Ginger", "nameNe": "अदुवा", "category": "spice", "unit": "kg" },
+    { "nameEn": "Banana", "nameNe": "केरा", "category": "fruit", "unit": "dozen" },
+    { "nameEn": "Mango", "nameNe": "आँप", "category": "fruit", "unit": "kg" },
+    { "nameEn": "Sugarcane", "nameNe": "उखु", "category": "cash crop", "unit": "quintal" },
+    { "nameEn": "Milk", "nameNe": "दूध", "category": "dairy", "unit": "litre" }
+  ]
+}
