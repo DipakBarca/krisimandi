@@ -6,7 +6,7 @@ Marketplace that connects farmers in Nepal with buyers. Farmers post a harvest a
 
 ```
 packages/db     Prisma schema, migrations, seed data (PostgreSQL + PostGIS)
-apps/api        NestJS API: sign-in, profiles, listings, search, alerts
+apps/api        NestJS API: sign-in, profiles, listings, search, alerts, offers, auctions, chat
 apps/web        Next.js PWA in Nepali and English
 ```
 
@@ -34,7 +34,7 @@ npm run dev -w @krisimandi/web   # http://localhost:3000
 
 With `SMS_PROVIDER=console` the sign-in code is printed in the API log instead of being sent.
 
-## API (phases 1 and 2)
+## API (phases 1 to 3)
 
 | Method | Path | Who | What |
 | --- | --- | --- | --- |
@@ -59,6 +59,16 @@ With `SMS_PROVIDER=console` the sign-in code is printed in the API log instead o
 | GET, POST, DELETE | /me/alerts | signed in | Crop alerts: a crop, optional municipality and highest price |
 | GET | /me/notifications, /me/notifications/unread | signed in | In-app notices, such as a new listing matching an alert |
 | POST | /me/notifications/read | signed in | Mark some (`ids`) or all notices read |
+| POST | /listings/:id/offers | buyer | Offer a price, quantity and pickup date on a fixed-price listing (open 48 h) |
+| GET | /listings/:id/offers, /me/offers?side=buying\|selling | signed in | Offer threads (the farmer sees all on their listing) |
+| POST | /offers/:id/accept, reject, counter, withdraw | the side whose turn it is | Accepting creates an order and reduces the stock |
+| GET | /listings/:id/auction | anyone | Live auction: highest bid, next minimum, masked bidders, countdown |
+| POST | /listings/:id/bids | buyer | Bid; a bid in the last 5 minutes adds 5 minutes |
+| POST | /listings/:id/auction/confirm, pass | farmer | Confirm the winner (creates the order) or pass to the next bidder |
+| GET | /me/orders, /orders/:id | signed in | Agreed deals, with both phone numbers |
+| POST | /listings/:id/conversation | signed in | Start or reopen the chat with the farmer |
+| GET | /me/conversations, /me/conversations/unread | signed in | Chats with last message and unread counts |
+| GET, POST | /conversations/:id/messages, /conversations/:id/photos | either side | Read (marks read; `after` for polling) and send messages or photos |
 
 Errors return a stable `code` (for example `OTP_INVALID`) that the web app translates.
 

@@ -368,19 +368,21 @@ model Offer {
 // ---------- Auctions (AUCTION mode) ----------
 
 model Auction {
-  id           String        @id @default(uuid()) @db.Uuid
-  listingId    String        @unique @map("listing_id") @db.Uuid
-  startPrice   Decimal       @map("start_price") @db.Decimal(12, 2) // per unit, NPR
-  reservePrice Decimal?      @map("reserve_price") @db.Decimal(12, 2)
-  minIncrement Decimal       @map("min_increment") @db.Decimal(12, 2)
-  startsAt     DateTime      @map("starts_at")
-  endsAt       DateTime      @map("ends_at") // extended 5 min by a bid in the last 5 min
-  status       AuctionStatus @default(SCHEDULED)
-  winningBidId String?       @unique @map("winning_bid_id") @db.Uuid
-  confirmBy    DateTime?     @map("confirm_by") // farmer confirms within 24 h of close
-  listing      Listing       @relation(fields: [listingId], references: [id])
-  bids         Bid[]         @relation("AuctionBids")
-  winningBid   Bid?          @relation("WinningBid", fields: [winningBidId], references: [id])
+  id             String        @id @default(uuid()) @db.Uuid
+  listingId      String        @unique @map("listing_id") @db.Uuid
+  startPrice     Decimal       @map("start_price") @db.Decimal(12, 2) // per unit, NPR
+  reservePrice   Decimal?      @map("reserve_price") @db.Decimal(12, 2)
+  minIncrement   Decimal       @map("min_increment") @db.Decimal(12, 2)
+  startsAt       DateTime      @map("starts_at")
+  endsAt         DateTime      @map("ends_at") // extended 5 min by a bid in the last 5 min
+  status         AuctionStatus @default(SCHEDULED)
+  winningBidId   String?       @unique @map("winning_bid_id") @db.Uuid
+  confirmBy      DateTime?     @map("confirm_by") // farmer confirms within 24 h of close
+  // Winners the farmer passed over (or who timed out); the next-highest other bidder is offered the lot.
+  passedBuyerIds String[]      @default([]) @map("passed_buyer_ids") @db.Uuid
+  listing        Listing       @relation(fields: [listingId], references: [id])
+  bids           Bid[]         @relation("AuctionBids")
+  winningBid     Bid?          @relation("WinningBid", fields: [winningBidId], references: [id])
 
   @@index([status, endsAt])
   @@map("auctions")

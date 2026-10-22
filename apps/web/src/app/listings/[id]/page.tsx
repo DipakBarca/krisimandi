@@ -4,12 +4,14 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { ChangeEvent, useState } from 'react';
 import { ErrorText } from '@/components/Field';
+import { AuctionPanel } from '@/components/AuctionPanel';
+import { OfferPanel } from '@/components/OfferPanel';
 import { SaveButton } from '@/components/SaveButton';
 import { api, ApiError, photoUrl } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useApi } from '@/lib/hooks';
 import { useI18n } from '@/lib/i18n';
-import { Listing, ListingResult } from '@/lib/types';
+import { Conversation, Listing, ListingResult } from '@/lib/types';
 
 const inDays = (n: number) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
 
@@ -19,7 +21,7 @@ export default function ListingPage() {
   const { me, loading } = useAuth();
   const router = useRouter();
   // Wait for auth so the owner gets the exact location and reserve price.
-  const { data: listing, setData, error } = useApi<ListingResult>(loading ? null : `/listings/${id}`);
+  const { data: listing, setData, error, refresh } = useApi<ListingResult>(loading ? null : `/listings/${id}`);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -27,6 +29,8 @@ export default function ListingPage() {
   if (!listing) return <p className="muted">{t('common.loading')}</p>;
 
   const isOwner = me?.id === listing.farmerId;
+  // Once an auction stops taking bids, the farmer acts through the auction box instead.
+  const auctionOver = listing.saleMode === 'AUCTION' && listing.auction?.status !== 'LIVE';
   const run = async (fn: () => Promise<Listing | void>) => {
     setBusy(true);
     setActionError(null);
@@ -136,21 +140,27 @@ export default function ListingPage() {
         {listing.farmer.isVerified && <span className="badge">✓ {t('listing.verified')}</span>}
       </p>
 
+      {listing.saleMode === 'AUCTION' && listing.auction && (
+        <AuctionPanel listing={listing} isOwner={isOwner} canBid={!!me?.roles.includes('BUYER') && !isOwner} onClosed={refresh} />
+      )}
+      {listing.saleMode === 'FIXED' && me && (isOwner || me.roles.includes('BUYER')) && <OfferPanel listing={listing} isOwner={isOwner} />}
+
       {isOwner ? (
         <section className="stack owner">
           <div className="row wrap">
-            {listing.status === 'ACTIVE' && <button className="secondary" disabled={busy} onClick={() => action('pause')}>{t('sell.pause')}</button>}
+            {listing.status === 'ACTIVE' && !auctionOver && <button className="secondary" disabled={busy} onClick={() => action('pause')}>{t('sell.pause')}</button>}
             {listing.status === 'PAUSED' && <button className="secondary" disabled={busy} onClick={() => action('resume')}>{t('sell.resume')}</button>}
-            {(listing.status === 'ACTIVE' || listing.status === 'PAUSED') && (
-              <>
-                <Link className="button secondary" href={`/sell/${listing.id}/edit`}>{t('sell.edit')}</Link>
-                <button className="secondary" disabled={busy} onClick={() => action('sold')}>{t('sell.sold')}</button>
-              </>
+            {(listing.status === 'ACTIVE' || listing.status === 'PAUSED') && !auctionOver && (
+              <Link className="button secondary" href={`/sell/${listing.id}/edit`}>{t('sell.edit')}</Link>
+            )}
+            {/* Auctions are sold by confirming the winner, not by hand. */}
+            {(listing.status === 'ACTIVE' || listing.status === 'PAUSED') && listing.saleMode === 'FIXED' && (
+              <button className="secondary" disabled={busy} onClick={() => action('sold')}>{t('sell.sold')}</button>
             )}
             {(listing.status === 'EXPIRED' || listing.status === 'SOLD') && listing.saleMode === 'FIXED' && (
               <button className="secondary" disabled={busy} onClick={() => action('relist', { availableUntil: inDays(7) })}>{t('sell.relist')}</button>
             )}
-            <button
+            {listing.auction?.status !== 'AWAITING_CONFIRMATION' && <button
               className="danger"
               disabled={busy}
               onClick={() => run(async () => {
@@ -159,7 +169,7 @@ export default function ListingPage() {
               })}
             >
               {t('sell.remove')}
-            </button>
+            </button>}
           </div>
           {listing.photos.length < 6 && (
             <label className="button secondary file">
@@ -171,10 +181,28 @@ export default function ListingPage() {
         </section>
       ) : (
         <>
-          <p>
+          {!me && (
+            <p className="notice">
+              <Link href="/login">{t('offer.loginFirst')}</Link>
+            </p>
+          )}
+          {me && !me.roles.includes('BUYER') && <p className="notice">{t('offer.needBuyer')}</p>}
+          <div className="row wrap">
+            {me && (
+              <button
+                className="secondary"
+                disabled={busy}
+                onClick={() => run(async () => {
+                  const convo = await api<Conversation>(`/listings/${listing.id}/conversation`, { method: 'POST' });
+                  router.push(`/messages/${convo.id}`);
+                })}
+              >
+                💬 {t('chat.message')}
+              </button>
+            )}
             <SaveButton listingId={listing.id} saved={!!listing.saved} withLabel />
-          </p>
-          <p className="notice">{t('listing.offerSoon')}</p>
+          </div>
+          <ErrorText message={actionError} />
         </>
       )}
     </article>

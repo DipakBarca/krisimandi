@@ -1,10 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
 
 @Injectable()
 export class NotificationsService {
   constructor(private readonly prisma: PrismaService) {}
+
+  /** Adds an in-app notice for each user. `data` should carry what the notice text needs. */
+  async send(userIds: string | string[], type: string, data: Prisma.InputJsonObject, db: Prisma.TransactionClient = this.prisma) {
+    const ids = [...new Set(Array.isArray(userIds) ? userIds : [userIds])];
+    if (ids.length === 0) return;
+    await db.notification.createMany({ data: ids.map((userId) => ({ userId, type, data, channel: 'IN_APP' as const })) });
+  }
 
   async list(user: User) {
     const [items, unread] = await Promise.all([

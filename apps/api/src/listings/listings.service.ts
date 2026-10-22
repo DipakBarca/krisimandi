@@ -228,6 +228,9 @@ export class ListingsService {
     if (listing.status === 'SOLD' || listing.status === 'REMOVED') {
       throw badRequest('LISTING_CLOSED', 'This listing can no longer be edited.');
     }
+    if (listing.saleMode === 'AUCTION' && (await this.prisma.bid.count({ where: { auction: { listingId: id } } })) > 0) {
+      throw badRequest('AUCTION_HAS_BIDS', 'An auction with bids runs to its end.');
+    }
     if (dto.pricePerUnit !== undefined && listing.saleMode !== 'FIXED') {
       throw badRequest('PRICE_NOT_ALLOWED', 'Auctions use a start price instead.');
     }
@@ -282,6 +285,16 @@ export class ListingsService {
     if (!rule.from.includes(listing.status)) {
       throw badRequest('STATUS_CHANGE_INVALID', `A ${listing.status.toLowerCase()} listing cannot be ${action}d.`);
     }
+    if (listing.saleMode === 'AUCTION' && action !== 'remove') {
+      const bids = await this.prisma.bid.count({ where: { auction: { listingId: id } } });
+      if (bids > 0) throw badRequest('AUCTION_HAS_BIDS', 'An auction with bids runs to its end.');
+    }
+    if (action === 'remove' && listing.saleMode === 'AUCTION') {
+      const auction = await this.prisma.auction.findUnique({ where: { listingId: id }, include: { _count: { select: { bids: true } } } });
+      if (auction && auction._count.bids > 0 && (auction.status === 'LIVE' || auction.status === 'AWAITING_CONFIRMATION')) {
+        throw badRequest('AUCTION_HAS_BIDS', 'An auction with bids runs to its end.');
+      }
+    }
     if (action === 'resume' && listing.availableUntil < today()) {
       throw badRequest('LISTING_EXPIRED', 'This listing has expired. Relist it with new dates.');
     }
@@ -331,7 +344,12 @@ export class ListingsService {
   /** Marks listings past their available-until date as expired. Run hourly. */
   async expireOld() {
     const { count } = await this.prisma.listing.updateMany({
-      where: { status: { in: ['ACTIVE', 'PAUSED'] }, availableUntil: { lt: today() } },
+      where: {
+        status: { in: ['ACTIVE', 'PAUSED'] },
+        availableUntil: { lt: today() },
+        // A winner waiting for the farmer's confirmation keeps the listing open past its date.
+        OR: [{ auction: { is: null } }, { auction: { status: { not: 'AWAITING_CONFIRMATION' } } }],
+      },
       data: { status: 'EXPIRED' },
     });
     return count;

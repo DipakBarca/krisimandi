@@ -78,5 +78,84 @@ export type AppNotification = {
     municipality?: NamePair;
     price?: string | null;
     village?: string | null;
+    orderId?: string;
   };
+};
+
+export type OfferStatus = 'OPEN' | 'COUNTERED' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED' | 'WITHDRAWN';
+export type Offer = {
+  id: string;
+  listingId: string;
+  buyerId: string;
+  pricePerUnit: string;
+  quantity: string;
+  pickupDate: string;
+  parentOfferId: string | null;
+  madeByFarmer: boolean;
+  status: OfferStatus;
+  expiresAt: string;
+  createdAt: string;
+  buyer: { id: string; fullName: string; isVerified: boolean };
+  listing: Listing;
+  order: { id: string } | null;
+};
+
+export type AuctionState = {
+  listingId: string;
+  status: 'SCHEDULED' | 'LIVE' | 'AWAITING_CONFIRMATION' | 'CLOSED' | 'NO_SALE';
+  startPrice: string;
+  minIncrement: string;
+  endsAt: string;
+  serverTime: string;
+  confirmBy: string | null;
+  highest: string | null;
+  nextMin: string;
+  bidCount: number;
+  bidderCount: number;
+  hasReserve: boolean;
+  reserveMet: boolean;
+  myHighest: string | null;
+  iAmLeading: boolean;
+  iAmWinner: boolean;
+  winningAmount: string | null;
+  winnerName: string | null;
+  orderId?: string;
+  bids: { amountPerUnit: string; placedAt: string; bidder: string; name?: string }[];
+};
+
+type Person = { id: string; fullName: string; photoUrl?: string | null; phone: string | null };
+export type Conversation = {
+  id: string;
+  listingId: string;
+  createdAt: string;
+  listing: Listing;
+  iAm: 'FARMER' | 'BUYER';
+  dealAgreed: boolean;
+  other: Person;
+  lastMessage?: ChatMessage | null;
+  unread?: number;
+};
+export type ChatMessage = {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  body: string | null;
+  photoUrl: string | null;
+  readAt: string | null;
+  createdAt: string;
+};
+
+export type Order = {
+  id: string;
+  listingId: string;
+  buyerId: string;
+  farmerId: string;
+  pricePerUnit: string;
+  quantity: string;
+  pickupAt: string | null;
+  status: 'CONFIRMED' | 'READY_FOR_PICKUP' | 'PICKED_UP' | 'COMPLETED' | 'CANCELLED';
+  createdAt: string;
+  listing: Listing;
+  buyer: Person & { village: string | null };
+  farmer: Person & { village: string | null };
 };

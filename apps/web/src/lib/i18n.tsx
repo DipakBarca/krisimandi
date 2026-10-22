@@ -73,7 +73,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const t = useCallback(
     (key: MessageKey, vars?: Record<string, string | number>) => {
       let text: string = messages[lang][key] ?? messages.en[key] ?? key;
-      for (const [k, v] of Object.entries(vars ?? {})) text = text.replace(`{${k}}`, String(v));
+      for (const [k, v] of Object.entries(vars ?? {})) text = text.replaceAll(`{${k}}`, String(v));
       return text;
     },
     [lang],
