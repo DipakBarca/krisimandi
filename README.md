@@ -6,7 +6,7 @@ Marketplace that connects farmers in Nepal with buyers. Farmers post a harvest a
 
 ```
 packages/db     Prisma schema, migrations, seed data (PostgreSQL + PostGIS)
-apps/api        NestJS API: sign-in, profiles, listings
+apps/api        NestJS API: sign-in, profiles, listings, search, alerts
 apps/web        Next.js PWA in Nepali and English
 ```
 
@@ -34,7 +34,7 @@ npm run dev -w @krisimandi/web   # http://localhost:3000
 
 With `SMS_PROVIDER=console` the sign-in code is printed in the API log instead of being sent.
 
-## API (phase 1)
+## API (phases 1 and 2)
 
 | Method | Path | Who | What |
 | --- | --- | --- | --- |
@@ -47,12 +47,18 @@ With `SMS_PROVIDER=console` the sign-in code is printed in the API log instead o
 | GET, PATCH | /admin/verification-docs | admin | Review queue; approving sets the badge |
 | GET | /users/:id | anyone | Public profile (no phone number) |
 | GET | /locations/..., /crops, /units | anyone | Lookup lists in Nepali and English |
-| GET | /listings, /listings/:id | anyone | Active listings; exact location only for the owner |
+| GET | /listings | anyone | Search: `q`, `cropId`, `municipalityId`, `wardId`, `saleMode`, `minPrice`, `maxPrice`, `lat`+`lng`+`radiusKm`, `sort` (newest, price_asc, price_desc, nearest, ending_soon) |
+| GET | /listings/:id | anyone | One listing; exact location only for the owner |
 | POST | /listings | farmer | Fixed-price or auction listing |
 | PATCH, DELETE | /listings/:id | owner | Edit or remove |
 | POST | /listings/:id/pause, resume, sold, relist | owner | Change status |
 | POST, DELETE | /listings/:id/photos | owner | Up to 6 photos, stored as WebP |
 | GET | /me/listings | farmer | The farmer's own listings |
+| PUT, DELETE | /listings/:id/save | signed in | Save or unsave a listing |
+| GET | /me/saved | signed in | Saved listings |
+| GET, POST, DELETE | /me/alerts | signed in | Crop alerts: a crop, optional municipality and highest price |
+| GET | /me/notifications, /me/notifications/unread | signed in | In-app notices, such as a new listing matching an alert |
+| POST | /me/notifications/read | signed in | Mark some (`ids`) or all notices read |
 
 Errors return a stable `code` (for example `OTP_INVALID`) that the web app translates.
 

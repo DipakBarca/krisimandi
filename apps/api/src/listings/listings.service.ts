@@ -2,11 +2,21 @@ import { Injectable } from '@nestjs/common';
 import { Listing, ListingStatus, Prisma, User } from '@prisma/client';
 import { config } from '../config';
 import { badRequest, forbidden, notFound } from '../common/errors';
+import { AlertsService } from '../alerts/alerts.service';
 import { PrismaService } from '../prisma.service';
 import { StorageService } from '../storage/storage.service';
 import { CreateListingDto, ListListingsQuery, RelistDto, UpdateListingDto } from './dto';
 
 const MIN_AUCTION_MS = 60 * 60 * 1000;
+
+/** Great-circle distance in km, to one decimal. Callers pass the rounded point, never the exact one. */
+export function distanceKm(lat1: number, lng1: number, lat2: number, lng2: number) {
+  const rad = Math.PI / 180;
+  const a =
+    Math.sin(((lat2 - lat1) * rad) / 2) ** 2 +
+    Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(((lng2 - lng1) * rad) / 2) ** 2;
+  return Math.round(6371 * 2 * Math.asin(Math.sqrt(a)) * 10) / 10;
+}
 
 const listingInclude = {
   crop: true,
@@ -28,6 +38,7 @@ export class ListingsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly storage: StorageService,
+    private readonly alerts: AlertsService,
   ) {}
 
   async create(farmer: User, dto: CreateListingDto) {
@@ -85,6 +96,7 @@ export class ListingsService {
       },
     });
     await this.setLocation(listing.id, dto.lat, dto.lng);
+    await this.alerts.notifyMatches(listing.id);
     return this.get(listing.id, farmer);
   }
 
@@ -94,26 +106,112 @@ export class ListingsService {
     if (!listing || ((listing.status === 'DRAFT' || listing.status === 'REMOVED') && !isOwner)) {
       throw notFound('LISTING_NOT_FOUND', 'Listing not found.');
     }
-    return this.present(listing, isOwner);
+    const saved = await this.savedIds(viewer, [id]);
+    return { ...(await this.present(listing, isOwner)), saved: saved.has(id) };
   }
 
-  async list(q: ListListingsQuery) {
+  /**
+   * Search for buyers. Filters run in SQL so distance and price can be used for sorting;
+   * paging is by offset, carried in an opaque cursor.
+   */
+  async list(q: ListListingsQuery, viewer?: User) {
     const take = q.limit ?? 20;
-    const rows = await this.prisma.listing.findMany({
-      where: {
-        status: q.status ?? 'ACTIVE',
-        cropId: q.cropId,
-        saleMode: q.saleMode,
-        ward: q.municipalityId ? { municipalityId: q.municipalityId } : undefined,
-      },
-      include: listingInclude,
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      take: take + 1,
-      ...(q.cursor ? { cursor: { id: q.cursor }, skip: 1 } : {}),
+    const offset = q.cursor ? Number(q.cursor) : 0;
+    const hasPoint = q.lat !== undefined && q.lng !== undefined;
+    if ((q.lat === undefined) !== (q.lng === undefined)) {
+      throw badRequest('LOCATION_INCOMPLETE', 'Send both latitude and longitude.');
+    }
+    if ((q.radiusKm !== undefined || q.sort === 'nearest') && !hasPoint) {
+      throw badRequest('LOCATION_REQUIRED', 'Share your location to search nearby.');
+    }
+    if (q.minPrice !== undefined && q.maxPrice !== undefined && q.minPrice > q.maxPrice) {
+      throw badRequest('PRICE_RANGE_INVALID', 'The lowest price is above the highest price.');
+    }
+
+    const price = Prisma.sql`COALESCE(l.price_per_unit, a.start_price)`;
+    const here = hasPoint ? Prisma.sql`ST_SetSRID(ST_MakePoint(${q.lng}, ${q.lat}), 4326)::geography` : null;
+    const where: Prisma.Sql[] = [Prisma.sql`l.status = ${q.status ?? 'ACTIVE'}::"ListingStatus"`];
+    if (q.cropId !== undefined) where.push(Prisma.sql`l.crop_id = ${q.cropId}`);
+    if (q.wardId !== undefined) where.push(Prisma.sql`l.ward_id = ${q.wardId}`);
+    if (q.municipalityId !== undefined) where.push(Prisma.sql`w.municipality_id = ${q.municipalityId}`);
+    if (q.saleMode) where.push(Prisma.sql`l.sale_mode = ${q.saleMode}::"SaleMode"`);
+    if (q.minPrice !== undefined) where.push(Prisma.sql`${price} >= ${q.minPrice}`);
+    if (q.maxPrice !== undefined) where.push(Prisma.sql`${price} <= ${q.maxPrice}`);
+    if (q.q?.trim()) {
+      const like = `%${q.q.trim().replace(/[\\%_]/g, (m) => `\\${m}`)}%`;
+      where.push(Prisma.sql`(c.name_en ILIKE ${like} OR c.name_ne ILIKE ${like}
+        OR l.variety ILIKE ${like} OR l.village ILIKE ${like})`);
+    }
+    if (here && q.radiusKm !== undefined) {
+      where.push(Prisma.sql`ST_DWithin(l.location, ${here}, ${q.radiusKm * 1000})`);
+    }
+
+    const orderBy = {
+      newest: Prisma.sql`l.created_at DESC`,
+      price_asc: Prisma.sql`${price} ASC`,
+      price_desc: Prisma.sql`${price} DESC`,
+      nearest: here ? Prisma.sql`ST_Distance(l.location, ${here}) ASC NULLS LAST` : Prisma.empty,
+      // Auctions closing first; fixed-price listings follow, newest first.
+      ending_soon: Prisma.sql`a.ends_at ASC NULLS LAST, l.created_at DESC`,
+    }[q.sort ?? 'newest'];
+
+    const rows = await this.prisma.$queryRaw<{ id: string }[]>`
+      SELECT l.id FROM listings l
+      JOIN crops c ON c.id = l.crop_id
+      JOIN wards w ON w.id = l.ward_id
+      LEFT JOIN auctions a ON a.listing_id = l.id
+      WHERE ${Prisma.join(where, ' AND ')}
+      ORDER BY ${orderBy}, l.id DESC
+      LIMIT ${take + 1} OFFSET ${offset}`;
+    const ids = rows.slice(0, take).map((r) => r.id);
+    const found = await this.prisma.listing.findMany({ where: { id: { in: ids } }, include: listingInclude });
+    const byId = new Map(found.map((l) => [l.id, l]));
+    const saved = await this.savedIds(viewer, ids);
+    const items = await Promise.all(
+      ids.map(async (id) => {
+        const item = await this.present(byId.get(id)!, false);
+        return {
+          ...item,
+          saved: saved.has(id),
+          distanceKm: hasPoint && item.location ? distanceKm(q.lat!, q.lng!, item.location.lat, item.location.lng) : null,
+        };
+      }),
+    );
+    return { items, nextCursor: rows.length > take ? String(offset + take) : null };
+  }
+
+  async save(user: User, id: string) {
+    await this.get(id, user);
+    await this.prisma.savedListing.upsert({
+      where: { userId_listingId: { userId: user.id, listingId: id } },
+      create: { userId: user.id, listingId: id },
+      update: {},
     });
-    const page = rows.slice(0, take);
-    const items = await Promise.all(page.map((l) => this.present(l, false)));
-    return { items, nextCursor: rows.length > take ? page.at(-1)!.id : null };
+  }
+
+  async unsave(user: User, id: string) {
+    await this.prisma.savedListing.deleteMany({ where: { userId: user.id, listingId: id } });
+  }
+
+  /** Saved listings, newest saved first. Removed ones drop out; sold or expired ones stay, marked. */
+  async saved(user: User) {
+    const rows = await this.prisma.savedListing.findMany({
+      where: { userId: user.id, listing: { status: { notIn: ['REMOVED', 'DRAFT'] } } },
+      include: { listing: { include: listingInclude } },
+      orderBy: { createdAt: 'desc' },
+    });
+    return Promise.all(
+      rows.map(async (r) => ({ ...(await this.present(r.listing, r.listing.farmerId === user.id)), saved: true })),
+    );
+  }
+
+  private async savedIds(viewer: User | undefined, ids: string[]) {
+    if (!viewer || ids.length === 0) return new Set<string>();
+    const rows = await this.prisma.savedListing.findMany({
+      where: { userId: viewer.id, listingId: { in: ids } },
+      select: { listingId: true },
+    });
+    return new Set(rows.map((r) => r.listingId));
   }
 
   async mine(farmer: User) {

@@ -10,6 +10,7 @@
   ],
   "crops": [
     { "nameEn": "Rice (paddy)", "nameNe": "धान", "category": "grain", "unit": "quintal" },
+    { "nameEn": "Paddy", "nameNe": "धान", "category": "grain", "unit": "quintal" },
     { "nameEn": "Wheat", "nameNe": "गहुँ", "category": "grain", "unit": "quintal" },
     { "nameEn": "Maize", "nameNe": "मकै", "category": "grain", "unit": "quintal" },
     { "nameEn": "Lentil", "nameNe": "मसुरो", "category": "pulse", "unit": "kg" },

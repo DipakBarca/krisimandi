@@ -131,3 +131,52 @@ button.link { background: none; border: 0; color: var(--accent); padding: 4px; m
   .row:not(.between):not(.wrap) { flex-direction: column; align-items: stretch; }
   .gallery figure { flex-basis: 92%; }
 }
+
+/* ---------- Search and discovery ---------- */
+select.auto { width: auto; }
+.search-bar { display: grid; grid-template-columns: 1fr minmax(120px, 40%); gap: 8px; }
+.toggle { display: inline-flex; margin-left: auto; }
+.toggle button { border-radius: 0; }
+.toggle button:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+.toggle button:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
+.filters { border: 1px solid var(--border); border-radius: var(--radius); padding: 0 12px; }
+.filters summary { cursor: pointer; font-weight: 600; min-height: 48px; display: flex; align-items: center; gap: 6px; }
+.filters summary .badge { margin: 0; }
+.filters[open] { padding-bottom: 12px; }
+.distance { color: var(--accent); font-weight: 600; }
+
+.card-wrap { position: relative; display: flex; }
+.card-wrap .card { flex: 1; }
+.save-toggle {
+  position: absolute; top: 8px; right: 8px; width: 44px; height: 44px; min-height: 0; padding: 0;
+  border-radius: 999px; background: var(--bg); color: var(--danger); border: 1px solid var(--border);
+  font-size: 1.35rem; line-height: 1;
+}
+.heart.on { color: var(--danger); }
+
+.map { height: 60vh; min-height: 320px; border-radius: var(--radius); border: 1px solid var(--border); z-index: 0; }
+.map-pin span {
+  display: grid; place-items: center; width: 34px; height: 34px; border-radius: 999px;
+  background: #2f7a3e; color: #fff; font-weight: 700; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+.map-popup { font-size: 0.95rem; line-height: 1.4; }
+.map-popup hr { border: 0; border-top: 1px solid #ddd; margin: 6px 0; }
+
+.plain-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.plain-list > li { border-bottom: 1px solid var(--border); padding: 8px 0; }
+.notification-body {
+  width: 100%; background: none; color: var(--text); border: 0; padding: 8px 4px; text-align: left;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; font-weight: 400;
+}
+.notification.unread .notification-body { font-weight: 600; }
+.notification.unread { border-left: 4px solid var(--accent); padding-left: 8px; }
+
+.bell { position: relative; font-size: 1.2rem; margin-right: 10px; }
+.bell .count {
+  position: absolute; top: -6px; right: -10px; min-width: 20px; height: 20px; padding: 0 5px;
+  border-radius: 999px; background: var(--danger); color: #fff; font-size: 0.75rem; display: grid; place-items: center;
+}
+
+@media (max-width: 480px) {
+  .search-bar { grid-template-columns: 1fr; }
+}
