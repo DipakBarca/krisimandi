@@ -1,0 +1,10 @@
+{
+  "name": "KrisiMandi – कृषिमण्डी",
+  "short_name": "KrisiMandi",
+  "description": "Sell your harvest from your farm. Buyers make offers or bid.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2f7a3e",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

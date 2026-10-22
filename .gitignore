@@ -2,3 +2,7 @@ node_modules/
 .env
 dist/
 .next/
+uploads/
+.next/
+next-env.d.ts
+*.tsbuildinfo

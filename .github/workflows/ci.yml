@@ -1,4 +1,4 @@
-name: Database
+name: CI
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
     branches: [main]
 
 jobs:
-  migrate-and-seed:
+  test:
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -37,3 +37,8 @@ jobs:
         working-directory: packages/db
       - run: npx prisma db seed
         working-directory: packages/db
+      - run: npm run typecheck -w @krisimandi/api
+      - run: npm run build -w @krisimandi/api
+      - run: npm test -w @krisimandi/api
+      - run: npm run typecheck -w @krisimandi/web
+      - run: npm run build -w @krisimandi/web
