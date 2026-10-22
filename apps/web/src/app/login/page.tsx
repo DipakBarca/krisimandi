@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { ErrorText, Field } from '@/components/Field';
@@ -67,6 +68,15 @@ export default function LoginPage() {
           </Field>
           <ErrorText message={error} />
           <button disabled={busy}>{busy ? t('common.loading') : t('login.send')}</button>
+          <p className="muted small">
+            {t('login.agree', { terms: '\u0000', privacy: '\u0001' })
+              .split(/(\u0000|\u0001)/)
+              .map((part, i) =>
+                part === '\u0000' ? <Link key={i} href="/terms">{t('footer.terms')}</Link>
+                : part === '\u0001' ? <Link key={i} href="/privacy">{t('footer.privacy')}</Link>
+                : part,
+              )}
+          </p>
         </form>
       ) : (
         <form onSubmit={verify} className="stack">

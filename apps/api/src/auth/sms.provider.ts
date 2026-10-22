@@ -25,9 +25,11 @@ export class SparrowSmsProvider extends SmsProvider {
       to: phone.replace(/^\+977/, ''),
       text,
     });
-    const res = await fetch('https://api.sparrowsms.com/v2/sms/', { method: 'POST', body });
-    if (!res.ok) {
-      throw new Error(`Sparrow SMS failed with ${res.status}: ${await res.text()}`);
+    const res = await fetch('https://api.sparrowsms.com/v2/sms/', { method: 'POST', body, signal: AbortSignal.timeout(15_000) });
+    // Sparrow answers 200 with response_code 200 when the message is queued.
+    const reply = (await res.json().catch(() => ({}))) as { response_code?: number; response?: string };
+    if (!res.ok || reply.response_code !== 200) {
+      throw new Error(`Sparrow SMS failed (${res.status}, ${reply.response_code ?? '-'}): ${reply.response ?? 'no details'}`);
     }
   }
 }

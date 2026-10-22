@@ -43,6 +43,13 @@ npm run db:make-admin -- 98XXXXXXXX --remove   # take it away
 
 Admins see an Admin link in the header for verification, complaints, users, the crop list and the audit log.
 
+## Production
+
+`docs/LAUNCH.md` is the step-by-step guide for putting the pilot online: one server running Docker with the
+database, API, web app, automatic HTTPS (Caddy) and daily backups, all defined in `deploy/compose.yml`.
+The API refuses to start in production without real SMS (`SMS_PROVIDER=sparrow`). `GET /health` is for uptime
+monitors, and `ALERT_WEBHOOK_URL` sends server errors, failed SMS and failed jobs to Slack or Discord.
+
 ## API (phases 1 to 4)
 
 | Method | Path | Who | What |
@@ -90,6 +97,7 @@ Admins see an Admin link in the header for verification, complaints, users, the 
 | POST | /admin/users/:id/suspend, unsuspend | admin | Suspending signs them out and pauses their listings on sale |
 | POST | /admin/listings/:id/remove | admin | Take a listing down with a `reason` the farmer sees |
 | POST, PATCH | /admin/crops | admin | Add or edit crops in the catalogue |
+| GET | /health | anyone | Up check: API and database reachable |
 | GET | /admin/audit | admin | Audit log of bids, accepted deals, order changes and admin actions (`entity`, `entityId`, `before`) |
 | POST | /listings/:id/conversation | signed in | Start or reopen the chat with the farmer |
 | GET | /me/conversations, /me/conversations/unread | signed in | Chats with last message and unread counts |
