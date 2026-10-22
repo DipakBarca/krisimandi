@@ -4,11 +4,12 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { ChangeEvent, useState } from 'react';
 import { ErrorText } from '@/components/Field';
+import { SaveButton } from '@/components/SaveButton';
 import { api, ApiError, photoUrl } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useApi } from '@/lib/hooks';
 import { useI18n } from '@/lib/i18n';
-import { Listing } from '@/lib/types';
+import { Listing, ListingResult } from '@/lib/types';
 
 const inDays = (n: number) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
 
@@ -18,7 +19,7 @@ export default function ListingPage() {
   const { me, loading } = useAuth();
   const router = useRouter();
   // Wait for auth so the owner gets the exact location and reserve price.
-  const { data: listing, setData, error } = useApi<Listing>(loading ? null : `/listings/${id}`);
+  const { data: listing, setData, error } = useApi<ListingResult>(loading ? null : `/listings/${id}`);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -169,7 +170,12 @@ export default function ListingPage() {
           <ErrorText message={actionError} />
         </section>
       ) : (
-        <p className="notice">{t('listing.offerSoon')}</p>
+        <>
+          <p>
+            <SaveButton listingId={listing.id} saved={!!listing.saved} withLabel />
+          </p>
+          <p className="notice">{t('listing.offerSoon')}</p>
+        </>
       )}
     </article>
   );

@@ -45,7 +45,7 @@ export async function resetData(prisma: PrismaService) {
   await prisma.$executeRawUnsafe(`
     TRUNCATE users, otp_codes, refresh_tokens, verification_docs, listings, listing_photos,
       auctions, bids, offers, conversations, messages, orders, reviews, complaints,
-      notifications, saved_listings, audit_logs CASCADE`);
+      notifications, saved_listings, crop_alerts, audit_logs CASCADE`);
 }
 
 let phoneCounter = 0;

@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AlertsController } from './alerts/alerts.controller';
+import { AlertsService } from './alerts/alerts.service';
+import { NotificationsService } from './alerts/notifications.service';
 import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
 import { AuthGuard } from './auth/guards';
@@ -25,6 +28,7 @@ import { VerificationController } from './verification/verification.controller';
     VerificationController,
     CatalogueController,
     ListingsController,
+    AlertsController,
   ],
   providers: [
     PrismaService,
@@ -34,6 +38,8 @@ import { VerificationController } from './verification/verification.controller';
     AuthService,
     UsersService,
     ListingsService,
+    AlertsService,
+    NotificationsService,
     ListingExpiryJob,
     { provide: APP_GUARD, useClass: AuthGuard },
   ],

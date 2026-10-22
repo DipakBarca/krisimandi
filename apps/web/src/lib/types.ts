@@ -51,3 +51,32 @@ export type Listing = {
   farmer: { id: string; fullName: string; photoUrl: string | null; isVerified: boolean };
   createdAt: string;
 };
+
+/** A listing as search returns it: with the viewer's saved flag and, for nearby searches, a rounded distance. */
+export type ListingResult = Listing & { saved?: boolean; distanceKm?: number | null };
+export type ListingPage = { items: ListingResult[]; nextCursor: string | null };
+
+export type CropAlert = {
+  id: string;
+  cropId: number;
+  municipalityId: number | null;
+  maxPrice: string | null;
+  crop: Crop;
+  municipality: Municipality | null;
+};
+
+type NamePair = { nameEn: string; nameNe: string };
+export type AppNotification = {
+  id: string;
+  type: 'LISTING_MATCH' | string;
+  readAt: string | null;
+  createdAt: string;
+  data: {
+    listingId?: string;
+    crop?: NamePair;
+    unit?: NamePair;
+    municipality?: NamePair;
+    price?: string | null;
+    village?: string | null;
+  };
+};

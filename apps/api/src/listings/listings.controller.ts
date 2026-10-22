@@ -8,6 +8,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Put,
   Query,
   UploadedFile,
 } from '@nestjs/common';
@@ -24,8 +25,25 @@ export class ListingsController {
 
   @Public()
   @Get('listings')
-  list(@Query() q: ListListingsQuery) {
-    return this.listings.list(q);
+  list(@Query() q: ListListingsQuery, @CurrentUser() user?: User) {
+    return this.listings.list(q, user);
+  }
+
+  @Get('me/saved')
+  saved(@CurrentUser() user: User) {
+    return this.listings.saved(user);
+  }
+
+  @Put('listings/:id/save')
+  @HttpCode(204)
+  async save(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
+    await this.listings.save(user, id);
+  }
+
+  @Delete('listings/:id/save')
+  @HttpCode(204)
+  async unsave(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
+    await this.listings.unsave(user, id);
   }
 
   @Public()
