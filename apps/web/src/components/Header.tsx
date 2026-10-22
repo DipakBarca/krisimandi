@@ -29,6 +29,7 @@ export function Header() {
         {me && <Badged href="/messages" icon="💬" label={t('nav.messages')} count={messages} />}
         {me && <Badged href="/notifications" icon="🔔" label={t('nav.alerts')} count={notices} />}
         {me && <Badged href="/saved" icon="♥" label={t('nav.saved')} count={0} />}
+        {me?.roles.includes('ADMIN') && <Link href="/admin">{t('nav.admin')}</Link>}
         {me ? <Link href="/profile">{t('nav.profile')}</Link> : <Link href="/login">{t('nav.login')}</Link>}
         <button className="link" onClick={() => setLang(lang === 'ne' ? 'en' : 'ne')}>
           {t('lang.switch')}

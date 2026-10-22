@@ -1,4 +1,5 @@
-import { IsDateString, IsIn, IsNumber, IsOptional, IsPositive, IsString, Length } from 'class-validator';
+import { IsDateString, IsEnum, IsIn, IsInt, IsNumber, IsOptional, IsPositive, IsString, Length, Max, Min } from 'class-validator';
+import { PaymentMethod } from '@prisma/client';
 
 export class CreateOfferDto {
   @IsNumber({ maxDecimalPlaces: 2 })
@@ -45,4 +46,40 @@ export class SendMessageDto {
   @IsString()
   @Length(1, 2000)
   body: string;
+}
+
+/** Pickup details either side can set while the order is open. */
+export class PickupDto {
+  @IsOptional()
+  @IsDateString()
+  pickupAt?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(1, 200)
+  pickupPlace?: string;
+}
+
+export class PaymentDto {
+  @IsOptional()
+  @IsEnum(PaymentMethod)
+  method?: PaymentMethod;
+}
+
+export class CancelOrderDto {
+  @IsString()
+  @Length(3, 500)
+  reason: string;
+}
+
+export class ReviewDto {
+  @IsInt()
+  @Min(1)
+  @Max(5)
+  rating: number;
+
+  @IsOptional()
+  @IsString()
+  @Length(1, 500)
+  comment?: string;
 }

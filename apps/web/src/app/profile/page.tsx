@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChangeEvent, FormEvent, useState } from 'react';
 import { ErrorText, Field } from '@/components/Field';
@@ -100,6 +101,7 @@ export default function ProfilePage() {
       )}
       <ErrorText message={error} />
 
+      <Link href="/complaints">{t('report.mine')}</Link>
       <button className="link" onClick={async () => { await signOut(); router.replace('/'); }}>
         {t('nav.logout')}
       </button>

@@ -450,9 +450,13 @@ model Order {
   pickupAt      DateTime?      @map("pickup_at")
   pickupPlace   String?        @map("pickup_place")
   paymentMethod PaymentMethod? @map("payment_method")
-  paidStatus    PaymentStatus  @default(UNPAID) @map("paid_status")
+  paidStatus    PaymentStatus  @default(UNPAID) @map("paid_status") // PAID once the farmer confirms receipt
+  buyerPaidAt   DateTime?      @map("buyer_paid_at") // buyer says they paid
+  farmerPaidAt  DateTime?      @map("farmer_paid_at") // farmer confirms the money arrived
   status        OrderStatus    @default(CONFIRMED)
   cancelReason  String?        @map("cancel_reason")
+  cancelledById String?        @map("cancelled_by_id") @db.Uuid
+  completedAt   DateTime?      @map("completed_at")
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
   listing       Listing        @relation(fields: [listingId], references: [id])

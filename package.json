@@ -7,6 +7,7 @@
   "scripts": {
     "db:up": "docker compose up -d",
     "db:migrate": "npm run migrate -w @krisimandi/db",
-    "db:seed": "npm run seed -w @krisimandi/db"
+    "db:seed": "npm run seed -w @krisimandi/db",
+    "db:make-admin": "npm run make-admin -w @krisimandi/db --"
   }
 }

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Bid, Prisma, User } from '@prisma/client';
 import { NotificationsService } from '../alerts/notifications.service';
+import { AuditService } from '../common/audit.service';
 import { badRequest, forbidden, notFound } from '../common/errors';
 import { PrismaService } from '../prisma.service';
 import { HOUR } from './dates';
@@ -26,6 +27,7 @@ export class AuctionsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
+    private readonly audit: AuditService,
   ) {}
 
   /**
@@ -97,7 +99,8 @@ export class AuctionsService {
       const min = highest ? new Prisma.Decimal(highest.amountPerUnit).plus(a.min_increment) : new Prisma.Decimal(a.start_price);
       if (min.greaterThan(amount)) throw badRequest('BID_TOO_LOW', `Bid at least Rs. ${min.toString()}.`);
 
-      await tx.bid.create({ data: { auctionId: a.id, buyerId: buyer.id, amountPerUnit: amount } });
+      const bid = await tx.bid.create({ data: { auctionId: a.id, buyerId: buyer.id, amountPerUnit: amount } });
+      await this.audit.log(buyer.id, 'BID_PLACED', 'bid', bid.id, { after: { listingId, amountPerUnit: amount } }, tx);
       if (a.ends_at.getTime() - now.getTime() < SNIPE_WINDOW) {
         await tx.auction.update({ where: { id: a.id }, data: { endsAt: new Date(now.getTime() + SNIPE_WINDOW) } });
       }
@@ -125,6 +128,7 @@ export class AuctionsService {
       });
       await tx.auction.update({ where: { id: auction.id }, data: { status: 'CLOSED', confirmBy: null } });
       await tx.listing.update({ where: { id: listingId }, data: { status: 'SOLD', quantityLeft: 0 } });
+      await this.audit.log(farmer.id, 'AUCTION_CONFIRMED', 'order', created.id, { after: { bidId: bid.id, listingId } }, tx);
       return created;
     });
     await this.notify(bid.buyerId, 'AUCTION_WON', listingId, { price: bid.amountPerUnit.toString(), orderId: order.id });

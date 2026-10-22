@@ -37,7 +37,15 @@ export default function NotificationsPage() {
       });
     }
     const key = `notifications.${n.type}` as MessageKey;
-    return key in messages.en ? t(key, { crop: name(d.crop), price: num(d.price ?? 0) }) : n.type;
+    return key in messages.en
+      ? t(key, {
+          crop: name(d.crop),
+          price: num(d.price ?? 0),
+          reason: String(d.reason ?? ''),
+          rating: num(d.rating ?? 0),
+          status: d.status ? t(`report.status.${d.status}`) : '',
+        })
+      : n.type;
   };
 
   return (
@@ -65,7 +73,9 @@ export default function NotificationsPage() {
                 className="notification-body"
                 onClick={async () => {
                   if (!n.readAt) await markRead([n.id]);
-                  if (n.data.orderId) router.push(`/orders/${n.data.orderId}`);
+                  if (n.type === 'COMPLAINT_FILED') router.push('/admin?tab=complaints');
+                  else if (n.data.complaintId) router.push('/complaints');
+                  else if (n.data.orderId) router.push(`/orders/${n.data.orderId}`);
                   else if (n.data.listingId) router.push(`/listings/${n.data.listingId}`);
                 }}
               >
