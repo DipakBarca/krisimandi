@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { randomInt } from 'crypto';
 import { config } from '../config';
-import { badRequest, tooMany } from '../common/errors';
+import { AppError, badRequest, tooMany } from '../common/errors';
 import { hmac, safeEqualHex } from '../common/hash';
+import { OpsAlertService } from '../common/ops-alert.service';
 import { PrismaService } from '../prisma.service';
 import { SmsProvider } from './sms.provider';
 
@@ -11,6 +12,7 @@ export class OtpService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly sms: SmsProvider,
+    private readonly alerts: OpsAlertService,
   ) {}
 
   private hash(phone: string, code: string) {
@@ -37,7 +39,7 @@ export class OtpService {
       where: { phone, consumedAt: null },
       data: { consumedAt: new Date() },
     });
-    await this.prisma.otpCode.create({
+    const otp = await this.prisma.otpCode.create({
       data: { phone, codeHash: this.hash(phone, code), expiresAt: new Date(now + ttlSeconds * 1000) },
     });
 
@@ -45,7 +47,14 @@ export class OtpService {
       lang === 'en'
         ? `Your KrisiMandi code is ${code}. It expires in 5 minutes.`
         : `तपाईंको कृषिमण्डी कोड ${code} हो। यो ५ मिनेटमा समाप्त हुन्छ।`;
-    await this.sms.send(phone, text);
+    try {
+      await this.sms.send(phone, text);
+    } catch (err) {
+      // The code never arrived, so it should not count against the person's limit.
+      await this.prisma.otpCode.delete({ where: { id: otp.id } });
+      await this.alerts.notify('sms', `Sign-in SMS failed: ${(err as Error).message}`);
+      throw new AppError(HttpStatus.SERVICE_UNAVAILABLE, 'SMS_FAILED', 'The code could not be sent. Try again in a moment.');
+    }
     return { expiresInSeconds: ttlSeconds };
   }
 

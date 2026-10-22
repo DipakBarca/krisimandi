@@ -1,0 +1,10 @@
+**/node_modules
+**/.next
+**/dist
+**/uploads
+**/*.tsbuildinfo
+**/.env
+**/.env.local
+deploy/.env
+deploy/backups
+.git

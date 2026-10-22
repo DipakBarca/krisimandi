@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AdminController } from './admin/admin.controller';
@@ -13,6 +13,9 @@ import { AuthGuard } from './auth/guards';
 import { OtpService } from './auth/otp.service';
 import { smsProviderFactory } from './auth/sms.provider';
 import { AuditService } from './common/audit.service';
+import { ErrorAlertFilter } from './common/error.filter';
+import { OpsAlertService } from './common/ops-alert.service';
+import { HealthController } from './health/health.controller';
 import { ComplaintsController } from './complaints/complaints.controller';
 import { ComplaintsService } from './complaints/complaints.service';
 import { ChatController } from './chat/chat.controller';
@@ -45,10 +48,12 @@ import { VerificationController } from './verification/verification.controller';
     ChatController,
     ComplaintsController,
     AdminController,
+    HealthController,
   ],
   providers: [
     PrismaService,
     AuditService,
+    OpsAlertService,
     StorageService,
     smsProviderFactory,
     OtpService,
@@ -66,6 +71,7 @@ import { VerificationController } from './verification/verification.controller';
     ComplaintsService,
     AdminService,
     { provide: APP_GUARD, useClass: AuthGuard },
+    { provide: APP_FILTER, useClass: ErrorAlertFilter },
   ],
 })
 export class AppModule {}

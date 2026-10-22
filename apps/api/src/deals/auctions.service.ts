@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Bid, Prisma, User } from '@prisma/client';
 import { NotificationsService } from '../alerts/notifications.service';
 import { AuditService } from '../common/audit.service';
+import { OpsAlertService } from '../common/ops-alert.service';
 import { badRequest, forbidden, notFound } from '../common/errors';
 import { PrismaService } from '../prisma.service';
 import { HOUR } from './dates';
@@ -22,12 +23,12 @@ type AuctionRow = {
 
 @Injectable()
 export class AuctionsService {
-  private readonly log = new Logger(AuctionsService.name);
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
     private readonly audit: AuditService,
+    private readonly ops: OpsAlertService,
   ) {}
 
   /**
@@ -170,7 +171,7 @@ export class AuctionsService {
           }
         });
       } catch (err) {
-        this.log.error(`Closing auction ${id} failed`, err as Error);
+        await this.ops.notify(`auction:${id}`, `Closing auction ${id} failed: ${(err as Error).message}`);
       }
     }
     return due.length;
