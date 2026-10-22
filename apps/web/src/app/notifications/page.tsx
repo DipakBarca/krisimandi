@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useApi, useRequireProfile } from '@/lib/hooks';
 import { useI18n } from '@/lib/i18n';
+import { messages, MessageKey } from '@/lib/messages';
 import { AppNotification } from '@/lib/types';
 import { notifyUnreadChanged } from '@/components/Header';
 
@@ -22,7 +23,7 @@ export default function NotificationsPage() {
       unread: res.unread,
       items: data.items.map((n) => (!ids || ids.includes(n.id) ? { ...n, readAt: n.readAt ?? now } : n)),
     });
-    notifyUnreadChanged(res.unread);
+    notifyUnreadChanged();
   };
 
   const text = (n: AppNotification) => {
@@ -35,7 +36,8 @@ export default function NotificationsPage() {
         place: [d.village, name(d.municipality)].filter(Boolean).join(', '),
       });
     }
-    return n.type;
+    const key = `notifications.${n.type}` as MessageKey;
+    return key in messages.en ? t(key, { crop: name(d.crop), price: num(d.price ?? 0) }) : n.type;
   };
 
   return (
@@ -63,7 +65,8 @@ export default function NotificationsPage() {
                 className="notification-body"
                 onClick={async () => {
                   if (!n.readAt) await markRead([n.id]);
-                  if (n.data.listingId) router.push(`/listings/${n.data.listingId}`);
+                  if (n.data.orderId) router.push(`/orders/${n.data.orderId}`);
+                  else if (n.data.listingId) router.push(`/listings/${n.data.listingId}`);
                 }}
               >
                 <span>{text(n)}</span>

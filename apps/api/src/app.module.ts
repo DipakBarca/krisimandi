@@ -10,6 +10,13 @@ import { AuthService } from './auth/auth.service';
 import { AuthGuard } from './auth/guards';
 import { OtpService } from './auth/otp.service';
 import { smsProviderFactory } from './auth/sms.provider';
+import { ChatController } from './chat/chat.controller';
+import { ChatService } from './chat/chat.service';
+import { AuctionsService } from './deals/auctions.service';
+import { DealsController } from './deals/deals.controller';
+import { DealsJob } from './deals/deals.job';
+import { OffersService } from './deals/offers.service';
+import { OrdersService } from './deals/orders.service';
 import { CatalogueController } from './catalogue/catalogue.controller';
 import { ListingExpiryJob } from './listings/expiry.job';
 import { ListingsController } from './listings/listings.controller';
@@ -29,6 +36,8 @@ import { VerificationController } from './verification/verification.controller';
     CatalogueController,
     ListingsController,
     AlertsController,
+    DealsController,
+    ChatController,
   ],
   providers: [
     PrismaService,
@@ -40,6 +49,11 @@ import { VerificationController } from './verification/verification.controller';
     ListingsService,
     AlertsService,
     NotificationsService,
+    OffersService,
+    AuctionsService,
+    OrdersService,
+    DealsJob,
+    ChatService,
     ListingExpiryJob,
     { provide: APP_GUARD, useClass: AuthGuard },
   ],
